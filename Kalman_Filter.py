@@ -39,7 +39,7 @@ class KalmanFilter(object):
 
         #uncertainties:
         self._std_weight_position = 1./20
-        self._std_weight_velocity = 1./160
+        self._std_weight_velocity = 1./100
 
 
     def initiate(self, measurement):

@@ -7,7 +7,7 @@ class tracking_object:
         self.state = False
         self.vis = False
         self.label = label
-        self.threashold = 5
+        self.threshold = 5
         self.mean_tracking = None
         self.covariance_tracking = None
 
@@ -71,7 +71,7 @@ class tracking_object:
         prior_estimation = self.prior_estimate()
         
         for i in range(len(lst)):
-            if (np.abs(lst[i] - prior_estimation[i]) > self.threashold):
+            if (np.abs(lst[i] - prior_estimation[i]) > self.threshold):
                 return False
             
         return True
@@ -81,6 +81,7 @@ class tracking_object:
 
 
 def Track(frame, tracking_objects):
+
     for obj in tracking_objects:
         obj.vis = False
 
@@ -96,6 +97,7 @@ def Track(frame, tracking_objects):
             for obj in tracking_objects:
                 if not obj.vis and obj.select(frame[j]):
                     obj.track(frame[j])
+                    obj.vis = True
                     found = True
 
             if not found:
