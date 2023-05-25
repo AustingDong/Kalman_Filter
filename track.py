@@ -7,7 +7,7 @@ class tracking_object:
         self.state = False
         self.vis = False
         self.label = label
-        self.threashold = 7
+        self.threashold = 5
         self.mean_tracking = None
         self.covariance_tracking = None
 
@@ -37,11 +37,14 @@ class tracking_object:
                 self.state = True
 
             else:
-                #update:
-                self.mean_tracking, self.covariance_tracking = k_filter.update(self.mean_tracking, self.covariance_tracking, lst)
 
                 #predict:
                 self.mean_tracking, self.covariance_tracking = k_filter.predict(self.mean_tracking, self.covariance_tracking)
+
+
+                #update:
+                self.mean_tracking, self.covariance_tracking = k_filter.update(self.mean_tracking, self.covariance_tracking, lst)
+
                 mean_show = self.mean_tracking.copy()
         else:
             if self.state:
@@ -50,7 +53,14 @@ class tracking_object:
 
         return mean_show
     
-
+    def prior_estimate(self):
+        '''
+        prior_estimate() produces prior estimation for selection.
+        '''
+        k_filter = KalmanFilter()
+        prior_estimate_mean, prior_estimate_covariance = k_filter.predict(self.mean_tracking, self.covariance_tracking)
+        return prior_estimate_mean
+    
     def select(self, lst):
         '''
         select(lst) judges whether the tracking object should track this node.
@@ -58,9 +68,12 @@ class tracking_object:
         parameters:
             lst: The list of [x, y, z] that you want to judge.
         '''
+        prior_estimation = self.prior_estimate()
+        
         for i in range(len(lst)):
-            if (np.abs(lst[i] - self.mean_tracking[i]) > self.threashold):
+            if (np.abs(lst[i] - prior_estimation[i]) > self.threashold):
                 return False
+            
         return True
 
     def render(self):

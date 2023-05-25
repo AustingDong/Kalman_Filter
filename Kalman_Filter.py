@@ -112,7 +112,6 @@ class KalmanFilter(object):
 
 
 
-
     def update(self, mean, covariance, measurement):
 
         projected_mean, projected_cov = self.project(mean, covariance)
