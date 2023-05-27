@@ -61,6 +61,12 @@ class tracking_object:
         prior_estimate_mean, prior_estimate_covariance = k_filter.predict(self.mean_tracking, self.covariance_tracking)
         return prior_estimate_mean
     
+
+    #########################
+    '''
+    need to be change
+    method: IoU
+    '''
     def select(self, lst):
         '''
         select(lst) judges whether the tracking object should track this node.
@@ -75,15 +81,44 @@ class tracking_object:
                 return False
             
         return True
+    ###################
+
 
     def render(self):
         pass
 
 
-def Track(frame, tracking_objects):
+def Track(frame, tracking_objects, log=True):
+    '''
+    Track(frame, tracking_objects, log) consumes the current frame and track each objects.
 
-    for obj in tracking_objects:
-        obj.vis = False
+    parameters:
+        frame: current frame, a list of point[x, y, z].
+        tracking_objects: a list of tracking_object.
+        log: selection about whether output the informations of each tracking object or not.
+
+    relations with code in paper:
+        D -- frame
+        T -- tracking_objects
+
+    '''
+    score_threshold = 0.5
+
+    D_high = []
+    D_low = []
+
+    D_remain = []
+    T_remain = []
+
+    for d in frame:
+        if d.score > score_threshold:
+            D_high.append(d)
+        else:
+            D_low.append(d)
+
+
+    for t in tracking_objects:
+        pass 
 
     for j in range(len(frame)):
         
@@ -99,11 +134,13 @@ def Track(frame, tracking_objects):
                     obj.track(frame[j])
                     obj.vis = True
                     found = True
+                    
 
             if not found:
                 new_obj = tracking_object(f"car{j + 1}")
                 new_obj.track(frame[j])
                 tracking_objects.append(new_obj)
 
-    for obj in tracking_objects:
-        print(obj.label, obj.mean_tracking)
+    if log:
+        for obj in tracking_objects:
+            print(obj.label, obj.mean_tracking)
