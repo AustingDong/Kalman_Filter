@@ -7,10 +7,12 @@ class tracking_object:
         self.state = False
         self.vis = False
         self.label = label
-        self.threshold = 5
+        self.threshold = 0.5
         self.mean_tracking = None
         self.covariance_tracking = None
 
+        # "dx, dy, dz" for generating bounding box
+        self.size = []
 
     def judge(self, lst):
         '''
@@ -30,7 +32,7 @@ class tracking_object:
             lst: The node that you want to let your tracking object to track. 
         '''
         k_filter = KalmanFilter()
-        mean_show = [0,0,0,0,0,0]
+        mean_show = [0,0,0,0,0,0,0,0]
         if self.judge(lst):
             if not self.state:
                 self.mean_tracking, self.covariance_tracking = k_filter.initiate(lst)
@@ -76,13 +78,20 @@ class tracking_object:
         '''
         prior_estimation = self.prior_estimate()
         
-        for i in range(len(lst)):
-            if (np.abs(lst[i] - prior_estimation[i]) > self.threshold):
-                return False
-            
-        return True
+        #########IoU############
+        return self.IoU(lst) > self.threshold
+        ########################
+
     ###################
 
+    def bounding_box(self, lst):
+        return [
+            ...
+        ]
+        pass
+
+    def IoU(self, lst):
+        pass
 
     def render(self):
         pass
@@ -104,43 +113,81 @@ def Track(frame, tracking_objects, log=True):
     '''
     score_threshold = 0.5
 
-    D_high = []
-    D_low = []
 
-    D_remain = []
-    T_remain = []
+    D_high = set()
+    D_low = set()
+
+    D_selected = set()
+    T_selected = set()
+    D_remain = set()
+    T_remain = set()
+
+    T_re_selected = set()
+    T_re_remain = set()
 
     for d in frame:
         if d.score > score_threshold:
-            D_high.append(d)
+            D_high.add(d)
         else:
-            D_low.append(d)
+            D_low.add(d)
 
-
+    #predict & associate D_high
     for t in tracking_objects:
-        pass 
+        for d in D_high():
+            if t.select(d):
+                t.track(d)
+                D_selected.add(d)
+                T_selected.add(t)
 
-    for j in range(len(frame)):
-        
-        if tracking_objects == []:
-            new_obj = tracking_object(f"car{len(tracking_objects) + 1}")
-            new_obj.track(frame[j])
-            tracking_objects.append(new_obj)
+    D_remain = D_high - D_low
+    T_remain = tracking_objects - T_selected
 
-        else:
-            found = False
-            for obj in tracking_objects:
-                if not obj.vis and obj.select(frame[j]):
-                    obj.track(frame[j])
-                    obj.vis = True
-                    found = True
-                    
+    for t in T_remain:
+        for d in D_low:
+            if t.select(d):
+                t.track(d)
+                D_selected.add(d)
+                T_re_selected.add(t)
 
-            if not found:
-                new_obj = tracking_object(f"car{j + 1}")
-                new_obj.track(frame[j])
-                tracking_objects.append(new_obj)
+    T_re_remain = T_remain - T_re_selected()
+
+    #delete unmatched
+    tracking_objects = tracking_objects - T_re_remain
+
+    
+    for d in D_remain:
+        new_obj = tracking_object(f"car{len(tracking_objects) + 1}")
+        new_obj.track(d)
+        tracking_objects.add(new_obj)
 
     if log:
         for obj in tracking_objects:
             print(obj.label, obj.mean_tracking)
+
+    return tracking_objects
+
+
+    # for j in range(len(frame)):
+        
+    #     if tracking_objects == []:
+    #         new_obj = tracking_object(f"car{len(tracking_objects) + 1}")
+    #         new_obj.track(frame[j])
+    #         tracking_objects.append(new_obj)
+
+    #     else:
+    #         found = False
+    #         for obj in tracking_objects:
+    #             if not obj.vis and obj.select(frame[j]):
+    #                 obj.track(frame[j])
+    #                 obj.vis = True
+    #                 found = True
+                    
+
+    #         if not found:
+    #             new_obj = tracking_object(f"car{j + 1}")
+    #             new_obj.track(frame[j])
+    #             tracking_objects.append(new_obj)
+
+    
+
+    

@@ -6,7 +6,7 @@ class KalmanFilter(object):
     def __init__(self):
         '''
         dimension: 6
-            x, y, z, dx, dy, dz
+            x, y, z, yaw, dx, dy, dz, dyaw
 
         dt: 1
             update after 1 frame
@@ -16,7 +16,7 @@ class KalmanFilter(object):
             H: update matrix
         '''
 
-        dimension, dt = 3, 1
+        dimension, dt = 4, 1
 
         #A:
         self.motion_matrix = np.eye(2*dimension, 2*dimension)
@@ -59,10 +59,12 @@ class KalmanFilter(object):
             2 * self._std_weight_position * measurement[0],
             2 * self._std_weight_position * measurement[1],
             2 * self._std_weight_position * measurement[2],
+            2 * self._std_weight_position * measurement[3],
 
             10 * self._std_weight_velocity * measurement[0],
             10 * self._std_weight_velocity * measurement[1],
-            10 * self._std_weight_velocity * measurement[2]
+            10 * self._std_weight_velocity * measurement[2],
+            10 * self._std_weight_velocity * measurement[3]
         ]
 
         covariance = np.diag(np.square(std))
@@ -75,13 +77,16 @@ class KalmanFilter(object):
         std_pos = [
             self._std_weight_position * mean[0],
             self._std_weight_position * mean[1],
-            self._std_weight_position * mean[2]
+            self._std_weight_position * mean[2],
+            self._std_weight_position * mean[3]
         ]
 
         std_vel = [
             self._std_weight_velocity * mean[0],
             self._std_weight_velocity * mean[1],
-            self._std_weight_velocity * mean[2]
+            self._std_weight_velocity * mean[2],
+            self._std_weight_position * mean[3]
+
         ]
 
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
@@ -99,7 +104,8 @@ class KalmanFilter(object):
         std = [
             self._std_weight_position * mean[0],
             self._std_weight_position * mean[1],
-            self._std_weight_position * mean[2]
+            self._std_weight_position * mean[2],
+            self._std_weight_position * mean[3]
         ]
 
         #Rk
